@@ -23,6 +23,7 @@ nav {
 .search-container {
       text-align: center;
       margin: 20px;
+     
 }
 
 .logo {
@@ -96,6 +97,7 @@ nav {
 .search-container h1 {
     font-size: 24px;
     margin-bottom: 20px;
+
 }
 
 .search-bar {
@@ -125,6 +127,15 @@ nav {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 70vh; 
+    height: 60vh; 
     
+}
+.search-container {
+    text-align: center;
+    margin: 20px;
+}
+
+#get-location-button {
+    display: block; 
+    margin: 0 auto; 
 }
