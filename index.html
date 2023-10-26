@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Web Application</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">
+                <a href="#">Your App Logo</a>
+            </div>
+            <div class="auth-buttons">
+                <a href="#">Login</a>
+                <a href="#">Sign Up</a>
+            </div>
+        </nav>
+        <div class="box">
+            <ul class="nav-links">
+                <li><a href="#">Home</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Services</a></li>
+                <li><a href="#">Contact</a></li>
+            </ul>
+        </div>
+    </header>
+      
+    <div class="search-container">
+        <h1>Find in Nearby Shops</h1>
+        <div class="search-bar">
+            <input type="text" id="productSearchInput" placeholder="Search for Products....">
+            <button type="button" onclick="searchProducts()">Search</button>
+        </div>
+    </div>
+    
+    <div id="map-container"> <!-- Create a container for the map -->
+        <div id="map" style="width: 600px; height: 400px;"></div>
+    </div>
+    <button id="get-location-button">Get My Location</button>
+    <script>
+        var map = L.map('map').setView([30.900965, 75.857277], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+    
+        // Initialize a variable to hold the marker and text
+        var marker;
+        var locationText;
+    
+        // Function to add a marker and display coordinates on map click
+        function addMarker(e) {
+            if (marker) {
+                map.removeLayer(marker);
+            }
+            if (locationText) {
+                map.removeLayer(locationText);
+            }
+            marker = L.marker(e.latlng).addTo(map);
+            locationText = L.marker(e.latlng, {
+                icon: L.divIcon({
+                    className: 'map-label',
+                    html: e.latlng.lat.toFixed(6) + ', ' + e.latlng.lng.toFixed(6),
+                    iconSize: [150, 20]
+                })
+            }).addTo(map);
+        }
+    
+        map.on('click', addMarker);
+    
+        // Get the user's live location
+        document.getElementById('get-location-button').addEventListener('click', function() {
+            if ('geolocation' in navigator) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var lat = position.coords.latitude;
+                    var lng = position.coords.longitude;
+                    var userLocation = [lat, lng];
+    
+                    // Center the map on the user's location and add a marker
+                    map.setView(userLocation, 12);
+                    addMarker({ latlng: L.latLng(lat, lng) });
+                });
+            } else {
+                alert('Geolocation is not available in your browser.');
+            }
+        });
+    </script>
+</body>
+</html>

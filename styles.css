@@ -1,0 +1,130 @@
+/* Reset default styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Style the header and navigation bar */
+header {
+     /* Change the background color */
+    
+    padding: 10px 0;
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+.search-container {
+      text-align: center;
+      margin: 20px;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: #fff;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    margin: 10px;
+    padding: 20px;
+    background-color: black;
+    border-radius: 10px;
+    
+}
+
+.nav-links li {
+    margin-right: 20px;
+    
+}
+
+
+.nav-links a {
+    text-decoration: none;
+    color: white;
+    transition: color 0.3s;
+}
+
+.nav-links a:hover {
+    color: #007BFF;
+}
+
+/* Style the auth buttons */
+.auth-buttons {
+    display: flex;
+    align-items: center;
+    margin-left: 20px;
+}
+
+.auth-buttons a {
+    display: flex;
+    text-decoration: none;
+    color: black;
+    margin-left: 20px;
+    padding: 5px 15px;
+    border: 1px solid blue;
+    border-radius: 5px;
+    transition: background-color 0.3s, color 0.3s;
+
+}
+
+.auth-buttons a:hover {
+    background-color: #fff;
+    color: #333;
+}
+
+/* Style the search container */
+.main {
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 20px;
+    text-align: center;
+    min-height: calc(100vh - 170px);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.search-container h1 {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.search-bar {
+    display: flex;
+    justify-content: center;
+}
+
+.search-bar input {
+    width: 300px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    outline: none;
+}
+
+.search-bar button {
+    background-color: #007BFF;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+#map-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 70vh; 
+    
+}
