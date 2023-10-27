@@ -3,46 +3,74 @@
 <head>
     <title>Login Page</title>
     <style>
-        /* Style for the Login form */
+       /* Reset default styles */
+       * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url('n.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column; /* Stack the elements vertically */
+        }
+
+        .form-container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            max-width: 300px;
+        }
+
         h2 {
             text-align: center;
             color: #007BFF;
-        }       
-    
+        }
+
         .login-form {
             text-align: center;
-            max-width: 300px;
-            margin: 0 auto;
+            max-width: 100%;
+            width: 100%;
         }
-    
+
         .form-group {
             margin-bottom: 20px;
         }
-    
+
         label {
             display: block;
             margin-bottom: 5px;
         }
-    
+
         input[type="text"],
         input[type="password"],
         input[type="tel"] {
-            width: 90%;
+            width: 95%;
             padding: 10px;
             margin-bottom: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
         }
-    
-        .container {
-            width: 400px;
-            margin: 0 auto;
-            margin-top: 100px;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
-        }
+
         button {
             background: #007BFF;
             color: #fff;
@@ -51,30 +79,31 @@
             border-radius: 5px;
             cursor: pointer;
         }
-        body {
-            font-family: Arial, sans-serif;
-            background-image: url('https://img.freepik.com/free-photo/painting-mountain-lake-with-mountain-background_188544-9126.jpg?size=626&ext=jpg&ga=GA1.1.386372595.1698278400&semt=sph');
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-        }
+
         button:hover {
             background: #0056b3;
         }
-        #btn{
-            font-size: 15px;
-        }
+
         label {
             display: block;
             margin-top: 10px;
             font-weight: bold;
         }
+
+        #map {
+            width: 300px;
+            height: 300px;
+            margin-left: 150px; /* Add spacing between the form and map */
+
+        }
     </style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     
 </head>
 <body>
     <div class="container">
-        <h2>Shop Register</h2>
+        <h2>Shop Registeration</h2>
         <form class="login-form" action="your_server_script.php" method="post">
             <div class="form-group">
                 <label for="username">Enter Username</label>
@@ -99,8 +128,53 @@
             <div class="form-group">
                 <button type="submit" id="btn">Submit</button>
             </div>
-            <p>If you are a existing Shopkeeper, <a href="home.html">click here to Register</a>.</p>
         </form>
     </div>
+    <div id="map-container"> <!-- Create a container for the map -->
+        <div id="map" style="width: 400px; height: 400px;"></div>
+    </div>
+    <script>
+        var map = L.map('map').setView([30.900965, 75.857277], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Initialize a variable to hold the marker and text
+        var marker;
+        var locationText;
+
+        // Function to add a marker and display coordinates on map click
+        function addMarker(e) {
+            if (marker) {
+                map.removeLayer(marker);
+            }
+            if (locationText) {
+                map.removeLayer(locationText);
+            }
+            marker = L.marker(e.latlng).addTo(map);
+            locationText = L.marker(e.latlng, {
+                icon: L.divIcon({
+                    className: 'map-label',
+                    html: e.latlng.lat.toFixed(6) + ', ' + e.latlng.lng.toFixed(6),
+                    iconSize: [150, 20]
+                })
+            }).addTo(map);
+        }
+
+        map.on('click', addMarker);
+        document.getElementById('show-location-button').addEventListener('click', function() {
+            if ('geolocation' in navigator) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    var lat = position.coords.latitude;
+                    var lng = position.coords.longitude;
+                    var userLocation = [lat, lng];
+                    map.setView(userLocation, 12);
+                    addMarker({ latlng: L.latLng(lat, lng) });
+                });
+            } else {
+                alert('Geolocation is not available in your browser.');
+            }
+        });
+    </script>
 </body>
 </html>
