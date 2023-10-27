@@ -14,15 +14,8 @@
         <th>Quantity</th>
       </tr>
     </thead>
-    <tbody>
-        <% results.forEach(item => { %>
-          <tr>
-            <td><%= item.sport_name %></td>
-            <td><%= item.item_name %></td>
-            <td><%= item.quantity %></td>
-          </tr>
-        <% }); %>
-      </tbody>      
+    <tbody id="results-table-body"> <!-- Add the id here -->
+    </tbody>
   </table>
 </body>
 </html>
