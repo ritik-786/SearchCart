@@ -8,6 +8,28 @@
     padding: 0;
     box-sizing: border-box;
 }
+.results-container {
+    padding: 20px;
+    border: 1px solid black;
+    border-radius: 5px;
+    margin-top: 20px;
+}
+
+/* CSS for individual result items */
+.result-item {
+    background-color: black;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+/* Style links within result items */
+.result-item a {
+    color: black;
+    text-decoration: none;
+    margin-top: 5px;
+}
 body {
     background-image: url('n.jpg');
     background-size: cover; /* Adjust as needed */
@@ -115,14 +137,14 @@ div button:hover{
               <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                   <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="index.html">Home</a>
+                    <a class="nav-link active" aria-current="page" href="#">Home</a>
                   </li>
                   <li class="nav-item">
-                    <a class="nav-link" href="About.html">About</a>
+                    <a class="nav-link" href="demo.html">About</a>
                   </li>
                 
                   <li class="nav-item">
-                    <a class="nav-link" href="#">Contact</a>
+                    <a class="nav-link" href="#">Inventory</a>
                   </li>
                 </ul>
                 
@@ -139,10 +161,13 @@ div button:hover{
     <div class="search-container">
         <h1>Find in Nearby Shops</h1>
         <div class="search-bar">
-            <input type="text" id="productSearchInput" placeholder="Search for Products....">
-            <button type="button" onclick="searchProducts()">Search</button>
+            <input type="text" id="productQuery" placeholder="Search for Products....">
+            <button onclick="searchProducts()">Search</button>
         </div>
+        
     </div>
+    <div id="results"></div>
+    <div id="results-container"></div>
     <div>
       <button id="show-location-button" type="button" class="location-button">Get My Location</button>
     </div>
@@ -193,6 +218,41 @@ div button:hover{
                 alert('Geolocation is not available in your browser.');
             }
         });
+        
+        async function searchProducts() {
+            const query = document.getElementById('productQuery').value;
+
+            if (!query) {
+                alert('Please enter a search query.');
+                return;
+            }
+
+            const response = await fetch(`/search?query=${query}`);
+            const data = await response.json();
+
+            displayResults(data);
+        }
+
+        function displayResults(results) {
+          const resultsContainer = document.getElementById('results-container');
+
+            resultsContainer.innerHTML = '';
+
+            if (results.length === 0) {
+                resultsContainer.innerHTML = '<p>No results found.</p>';
+            } else {
+                results.forEach(product => {
+                    const productElement = document.createElement('div');
+                    productElement.innerHTML = `
+                        <h3>${product.name}</h3>
+                        <p><strong>Price:</strong> ${product.price}</p>
+                        <p><strong>Description:</strong> ${product.description}</p>
+                    `;
+                    resultsContainer.appendChild(productElement);
+                });
+            }
+        }
+
     </script>
 </body>
 </html>
