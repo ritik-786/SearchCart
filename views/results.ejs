@@ -1,0 +1,28 @@
+<!-- views/results.ejs -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Search Results</title>
+</head>
+<body>
+  <h1>Search Results</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Sport Name</th>
+        <th>Item Name</th>
+        <th>Quantity</th>
+      </tr>
+    </thead>
+    <tbody>
+        <% results.forEach(item => { %>
+          <tr>
+            <td><%= item.sport_name %></td>
+            <td><%= item.item_name %></td>
+            <td><%= item.quantity %></td>
+          </tr>
+        <% }); %>
+      </tbody>      
+  </table>
+</body>
+</html>
