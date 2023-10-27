@@ -16,6 +16,24 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static('public'));
 app.use(express.json());
 
+app.set('view engine', 'ejs');
+
+const session = require('express-session');
+app.use(session({
+    secret: 'your-secret-key',
+    resave: false,
+    saveUninitialized: true
+}));
+
+
+function isAuthorized(req, res, next) {
+    if (req.session.isLoggedIn) {
+        next();
+    } else {
+        res.status(401).send('You must log in to access this feature');
+    }
+}
+
 const url = 'mongodb://127.0.0.1:27017/details'; // Replace with your MongoDB connection URL
 const secretKey = 'eyJhbGciOiJIUzI1NiJ9.eyJSb2xlIjoiQWRtaW4iLCJJc3N1ZXIiOiJJc3N1ZXIiLCJVc2VybmFtZSI6IkphdmFJblVzZSIsImV4cCI6MTY5ODMyMzAwNCwiaWF0IjoxNjk4MzIzMDA0fQ.oliXDweuyqg8qCkhqq6PUJkFE5lUKovEGQM0m137jmU'; // Replace with your own secret key
 
@@ -46,7 +64,7 @@ const inventoryItemSchema = new mongoose.Schema({
 // Define a model for inventory items
 const InventoryItem = mongoose.model('inventory', inventoryItemSchema);
 
-app.get('/inventory', (req,res) => {
+app.get('/inventory',isAuthorized, (req,res) => {
     res.sendFile(path.join(__dirname+'/public/inventory.html'));
 })
 
@@ -82,49 +100,29 @@ app.post('/api/items', async (req, res) => {
     }
 });
 
-// Add a route to handle DELETE requests for deleting products
-app.delete('/api/items/:itemId', async (req, res) => {
-    const itemId = req.params.itemId;
-    try {
-      // Delete the product from the MongoDB database based on the provided itemId
-      const result = await Product.deleteOne({ _id: itemId });
-      if (result.deletedCount === 1) {
-        res.json({ message: 'Product deleted successfully' });
-      } else {
-        res.status(404).json({ error: 'Product not found' });
-      }
-    } catch (error) {
-      console.error(error);
-      res.status(500).send('Error deleting product');
+app.delete('/api/items/:itemName', async (req, res) => {
+    const { itemName } = req.params;
+
+    if (!itemName) {
+        res.status(400).json({ error: 'Invalid request' });
+        return;
     }
-  });
-  
-  inventoryTable.addEventListener('click', async (e) => {
-    if (e.target.classList.contains('delete-item')) {
-        const itemId = e.target.getAttribute('data-id');
-        const confirmation = confirm('Are you sure you want to delete this item?');
-        
-        if (confirmation) {
-            try {
-                const response = await fetch(`/api/items/${itemId}`, {
-                    method: 'DELETE'
-                });
-                const data = await response.json();
-                
-                if (response.ok) {
-                    alert(data.message); // Display a success message
-                    fetchAndDisplayInventory(); // Refresh the inventory table
-                } else {
-                    alert(data.error); // Display an error message
-                }
-            } catch (error) {
-                console.error(error);
-                alert('An error occurred while deleting the item');
-            }
+
+    try {
+        const result = await InventoryItem.deleteOne({ item_name: itemName });
+
+        if (result.deletedCount === 0) {
+            res.status(404).json({ error: 'Item not found' });
+            res.send("Deletion Unsuccessful");
+        } else {
+            res.send("Deletion Successful");
+            res.status(204).send();
         }
+    } catch (error) {
+        console.error('Error deleting item:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
-
 
 app.put('/api/items/:itemName', async (req, res) => {
     const { itemName } = req.params;
@@ -154,8 +152,29 @@ app.get('/', (req,res)=>{
     res.sendFile(path.join(__dirname+'/public/homepage.html'));
 })
 
-app.get('/register', (req,res)=>{
-    res.sendFile(path.join(__dirname+'/new_user_registration.html'));
+app.post('/search', async (req, res) => {
+    const searchTerm = req.body.searchTerm;
+    try {
+      const results = await InventoryItem.find({ sport_name: { $regex: searchTerm, $options: 'i' } });
+      console.log(results); // Add this line to log the results
+      res.render('results', { results });
+    } catch (error) {
+      console.error(error);
+    }
+  });
+  
+  
+
+app.get('/new_user_register', (req,res)=>{
+    res.sendFile(path.join(__dirname+'/public/new_user_registration.html'));
+})
+
+app.get('/searchpage', (req,res)=>{
+    res.sendFile(path.join(__dirname+'/public/searchpage.html'));
+})
+
+app.get('/new_shop_register', (req,res)=>{
+    res.sendFile(path.join(__dirname + '/public/new_shop_register.html'));
 })
 
 app.get('/pro', (req,res)=>{
@@ -222,7 +241,8 @@ app.post('/signup', async (req, res) => {
                 } else {
                     // Generate a JWT and send it as a response for user authentication
                     const token = jwt.sign({ username: user.username }, secretKey, { expiresIn: '1h' });
-                    res.status(200).send({ token });
+                    req.session.isLoggedIn = true;
+                    res.redirect('/');
                 }
             });
         });
@@ -237,7 +257,32 @@ app.post('/signup', async (req, res) => {
         
         const Product = mongoose.model('Product_DB', productSchema);
         
-        
+        const ItemSchema = new mongoose.Schema({
+            name: String
+            // Add other fields as needed
+          });
+          
+          const Item = mongoose.model('Item', ItemSchema);
+          
+          app.use(express.json());
+          app.use(express.urlencoded({ extended: false }));
+          app.use(express.static('public'));
+          
+          app.get('/api/items', async (req, res) => {
+            try {
+              const searchQuery = req.query.search;
+              const items = await Item.find({
+                $or: [
+                  { name: { $regex: searchQuery, $options: 'i' } }, // Case-insensitive search
+                  { description: { $regex: searchQuery, $options: 'i' } },
+                ],
+              }).exec();
+              res.json(items);
+            } catch (error) {
+              console.error(error);
+              res.status(500).send('Error fetching data');
+            }
+          });
         
             app.post('/addProduct', async (req, res) => {
                 const { productName, quantity, productDescription, price } = req.body;
@@ -264,6 +309,84 @@ app.post('/signup', async (req, res) => {
                   res.status(500).send('Error while adding the product');
                 }
               });
+
+
+            
+const Shopkeeper = new mongoose.Schema({
+    username: { type: String, required: true },
+    password: { type: String, required: true },
+    shop_name: { type: String, required: true },
+    shop_address: { type: String, required: true }
+});
+
+// Define a model for inventory items
+const Shop = mongoose.model('shop_register', Shopkeeper);
+
+
+// User Registration Route
+app.post('/shop_signup', async (req, res) => {
+    const { username, password, shop_name, phone_number, shop_address } = req.body;
+  
+    // Basic validation
+    if (!username || !password || !shop_name || !shop_address || !phone_number) {
+      return res.status(400).send('All fields are required');
+    }
+  
+    try {
+      // Hash the user's password before storing it
+      const saltRounds = 10; // You can adjust the number of salt rounds
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+  
+      // Create and save the consumer to the database with the hashed password
+      const newConsumer = new Consumer({
+        username,
+        password: hashedPassword,
+        shop_name,
+        phone_number,
+        shop_address
+      });
+  
+      await newConsumer.save();
+  
+      res.status(201).send('Shopkeeper Registration Successful');
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error while Registering');
+    }
+  });
+
+
+// User Registration Route
+
+
+        // User Login Route
+        app.post('/shop_login', (req, res) => {
+            const username = req.body.username;
+            const password = req.body.password;
+
+            // Query the database to find the user
+            db.collection('shop_register').findOne({ username: username }, (err, user) => {
+                if (err) {
+                    res.status(500).send('Error during login.');
+                } else if (!user) {
+                    res.status(401).send('User not found.');
+                } else if (!bcrypt.compareSync(password, user.password)) {
+                    res.status(401).send('Incorrect password.');
+                } else {
+                    // Generate a JWT and send it as a response for user authentication
+                    const token = jwt.sign({ username: user.username }, secretKey, { expiresIn: '1h' });
+                    req.session.isLoggedIn = true;
+                    res.redirect('/');
+                }
+            });
+        });
+
+
+
+
+
+
+
 
         app.listen(port, () => {
             console.log(`Server is listening on port ${port}`);
